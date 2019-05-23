@@ -29,18 +29,54 @@ public class IMU implements IIMU {
     }
 
     @Override
-    public double getZAngle(){
+    public double getZAngle() {
         return -imu.getAngularOrientation().firstAngle - offset;
     }
-    //Gets angle of z-axid with discontinuty
+
+    // Gets angle of z-axid with discontinuty
     @Override
-    public double getZAngle(double desiredAngle){
+    public double getZAngle(double desiredAngle) {
         double angle = getZAngle();
-        
+        if (angle < desiredAngle - 180) {
+            angle += 360;
+        } else if (angle > desiredAngle + 180) {
+            angle -= 360;
+        }
+        return angle;
     }
 
     @Override
-    public double getXAcc(){
-        return -imu.getAcceleration().getXAcc;
+    public double getXAcc() {
+        return imu.getAcceleration().xAccel;
+    }
+
+    @Override
+    public double getYAcc() {
+        return imu.getAcceleration().yAccel;
+    }
+
+    @Override
+    public double getZAcc() {
+        return imu.getAcceleration().zAccel;
+    }
+
+    @Override
+    public double getXVelo() {
+        return imu.getVelocity().xVeloc;
+    }
+
+    @Override
+    public double getYVelo() {
+        return imu.getVelocity().yVeloc;
+    }
+
+    @Override
+    public double getZVelo() {
+        return imu.getVelocity().zVeloc;
+    }
+
+    @Override
+    public void calibrate() {
+
     }
 }
