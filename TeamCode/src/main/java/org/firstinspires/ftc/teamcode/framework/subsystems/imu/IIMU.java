@@ -1,3 +1,4 @@
+package org.firstinspires.ftc.teamcode.subsystem.imu;
 public interface IIMU {
     /**
      * Gets the angle on the x-axis
