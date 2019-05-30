@@ -71,11 +71,6 @@ public interface IIMU {
     double getZVelo();
 
     /**
-     * Calibrate the imu and initialize the parameters
-     */
-    void calibrate();
-
-    /**
      * Set an offest for the imu
      * 
      * @param offset the offset to set
