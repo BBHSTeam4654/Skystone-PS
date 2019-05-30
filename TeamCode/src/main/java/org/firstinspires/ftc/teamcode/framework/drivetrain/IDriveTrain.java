@@ -6,7 +6,7 @@ public interface IDriveTrain{
     /**
      * 
      */
-    boolean moveTo();
+    boolean move();
 
     boolean pivot();
     
