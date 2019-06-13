@@ -2,12 +2,14 @@ package org.firstinspires.ftc.teamcode.framework.drivetrain;
 
 import com.qualcom.robotcore.hardware.DcMotor;
 import com.qualcom.robotcore.util.ElapsedTime;
+import com.sun.xml.internal.ws.developer.MemberSubmissionEndpointReference.ServiceNameType;
 import com.firstinspires.ftc.robotcore.external.Telemetry;
 
 import org.firstinspires.ftc.teamcode.drivetrain.IDriveTrain;
 import org.firstinspires.ftc.teamcode.subsystems.imu.IIMU;
 import org.firstinspires.ftc.teamcode.enums.Direction;
 import org.firstinspires.ftc.teamcode.framework.Datalog;
+import org.firstinspires.ftc.teamcode.framework.Utility;
 
 public class Mecanum implements IDriveTrain {
     private List<DcMotor> motors;
@@ -93,8 +95,77 @@ public class Mecanum implements IDriveTrain {
         return Math.sin(Math.toRadians(desiredAngle)) * speed;
     }
 
-    //calculate power for y direction
-    private double calculateY(double desiredAngle, double speed){
-        return Math.cos(Math.toRadians(desiredAngle))*speed;
+    // calculate power for y direction
+    private double calculateY(double desiredAngle, double speed) {
+        return Math.cos(Math.toRadians(desiredAngle)) * speed;
+    }
+
+    @Override
+    public void resetEncoders() {
+        for (DCMotor motor : encoders) {
+            motor.setMode(DCMotor.RunMode.STOP_AND_RESET_ENCODER);
+            motor.setMode(DCMotor.RunMode.RUN_WITHOUT_ENCODER);
+        }
+        leftVerticalLastEncoder = 0;
+        rightVerticalLastEncoder = 0;
+        horizontalLastEncoder = 0;
+    }
+
+    public void resetEncoders(DCMotor.RunMode endMode) {
+        for (DcMotor motor : encoders) {
+            motor.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+            motor.setMode(endMode);
+        }
+        leftVerticalLastEncoder = 0;
+        rightVerticalLastEncoder = 0;
+        horizontalLastEncoder = 0;
+    }
+
+    public boolean move(double currentPosition, double targetPosition, double rampDownTargetPosition,
+            double rampUpTargetPosition, double rampDownEnd, double maxPower, double lowPower, double moveAngle,
+            double[] PIDGain, double endOrientationAngle, double allowableDistanceError, double correctionTime) {
+        double positionDifference = targetPosition - currentPosition;
+
+        if (Math.abs(positionDifference) <= allowableDistanceError) {
+            this.stop();
+
+            if (!targetReached) {
+                targetReached = true;
+                distanceCorrectionTimer.reset();
+                return true;
+            }
+        } else {
+            double rampDownDifference = targetPosition - rampDownTargetPosition;
+            double rampDownEndDifference = targetPosition - rampDownEnd;
+
+            double power;
+            if (rampDownDifference >= Math.abs(positionDifference)) {
+                power = lowPower;
+            } else if (rampDownDifference > Math.abs(positionDifference)) {
+                power = Math.abs((positionDifference) - rampDownDifference)
+                        * ((maxPower - lowPower) / (rampDownDifference - rampDownEndDifference)) + maxPower;
+            } else {
+                power = maxPower;
+            }
+
+            // get current IMU angle **MAY NEED TO ALTER ANGLE BASED ON HUB ORIENTATION**
+            double currentAngle = imu.getZAngle(endOrientationAngle);
+
+            moveAngle = moveAngle - currentAngle;
+
+            if (moveAngle <= -180) {
+                moveAngle += 360;
+            }
+            if (positionDifference < 0) {
+                moveAngle += 180;
+            }
+
+            // x vector movement
+            double horizontal = Utility.RoundTwoDec(calculateX(moveAngle, power));
+            // y vector movement
+            double verticle = Utility.RoundTwoDec(calculateY(moveAngle, power));
+            // correction
+            double pivotCorrection = ((currentAngle - endOrientationAngle) * PIDGain[0]);
+        }
     }
 }
