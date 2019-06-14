@@ -1,6 +1,6 @@
 package org.firstinspires.ftc.teamcode.framework.drivetrain;
 
-import org.firstinspires.ftc.teamcode.enums.direction;
+import org.firstinspires.ftc.teamcode.enums.Direction;
 
 public interface IDriveTrain {
     /**

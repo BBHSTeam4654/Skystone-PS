@@ -2,22 +2,22 @@ package org.firstinspires.ftc.teamcode.framework;
 
 import java.io.File;
 import java.io.FileWriter;
-import java.io.Reader;
+import java.io.Writer;
 import java.io.IOException;
 
-public class datalog {
+public class Datalog {
     private Writer writer;
     private StringBuffer lineBuffer;
     private long msBase;
     private long nsBase;
 
-    public dataLog(String filename){
+    public void dataLog(String filename){
         String directoryPath = "/FIRST/Datalog";
         String filePath = directoryPath + "/"+filename+".csv";
 
         new File(directoryPath).mkdir();
         try{
-            writer = new FileWriter(filepath);
+            writer = new FileWriter(filePath);
             lineBuffer = new StringBuffer(128);
          } catch(IOException e){
                msBase = System.currentTimeMillis();

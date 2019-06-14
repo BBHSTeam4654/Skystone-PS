@@ -1,8 +1,8 @@
-package org.firstinspires.ftc.teamcode.framework.subsystem;
+package org.firstinspires.ftc.teamcode.framework.subsystems.imu;
 
-import com.qualcom.hardware.bosch.BNO055IMU;
-import com.qualcom.hardware.bosch.JustLoggingAccelerationIntegrator;
-import com.qualcom.robotcore.util.ReadWriteFiles;
+import com.qualcomm.hardware.bosch.BNO055IMU;
+import com.qualcomm.hardware.bosch.JustLoggingAccelerationIntegrator;
+import com.qualcomm.robotcore.util.ReadWriteFile;
 import org.firstinspires.ftc.robotcore.internal.system.AppUtil;
 import java.io.File;
 
@@ -90,7 +90,12 @@ public class IMU implements IIMU {
     }
 
     @Override
-    public void setOffSet(double offset){
+    public void setOffSet(double offset) {
         this.offset = offset;
+    }
+
+    @Override
+    public void setAsZero() {
+        offset = -imu.getAngularOrientation().firstAngle;
     }
 }

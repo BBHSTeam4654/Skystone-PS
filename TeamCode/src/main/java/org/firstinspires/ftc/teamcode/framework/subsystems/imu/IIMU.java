@@ -1,4 +1,4 @@
-package org.firstinspires.ftc.teamcode.subsystem.imu;
+package org.firstinspires.ftc.teamcode.framework.subsystems.imu;
 public interface IIMU {
     /**
      * Gets the angle on the x-axis
@@ -76,7 +76,7 @@ public interface IIMU {
      * 
      * @param offset the offset to set
      */
-    void setOffset(double offset);
+    void setOffSet(double offset);
 
     /**
      * Set the current position as the zero position for the imu

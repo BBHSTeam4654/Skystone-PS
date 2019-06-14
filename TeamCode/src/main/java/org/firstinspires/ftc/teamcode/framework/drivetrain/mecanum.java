@@ -1,22 +1,22 @@
 package org.firstinspires.ftc.teamcode.framework.drivetrain;
 
-import com.qualcom.robotcore.hardware.DcMotor;
-import com.qualcom.robotcore.util.ElapsedTime;
-import com.sun.xml.internal.ws.developer.MemberSubmissionEndpointReference.ServiceNameType;
-import com.firstinspires.ftc.robotcore.external.Telemetry;
+import com.qualcomm.robotcore.hardware.DcMotor;
+import com.qualcomm.robotcore.util.ElapsedTime;
+import org.firstinspires.ftc.robotcore.external.Telemetry;
 
-import org.firstinspires.ftc.teamcode.drivetrain.IDriveTrain;
-import org.firstinspires.ftc.teamcode.subsystems.imu.IIMU;
+import org.firstinspires.ftc.teamcode.framework.drivetrain.IDriveTrain;
 import org.firstinspires.ftc.teamcode.enums.Direction;
+import org.firstinspires.ftc.teamcode.framework.subsystems.imu.IIMU;
 import org.firstinspires.ftc.teamcode.framework.Datalog;
 import org.firstinspires.ftc.teamcode.framework.Utility;
 
+import java.util.List;
 public class Mecanum implements IDriveTrain {
     private List<DcMotor> motors;
     private List<DcMotor> encoders;
     private IIMU imu;
 
-    private DataLog data;
+    private Datalog data;
 
     private final double END_ANGLE_OFFSET = 5;
 
@@ -34,11 +34,14 @@ public class Mecanum implements IDriveTrain {
 
     /**
      * Constructor for mecanum drivetrain with free-spinning odometry wheels
-     * @param motors List of motors on drivetrain in order of Right Front, Right Back, Left Front and then Left Back
-     * @param imu the inertial measurement unit or gyro sensor of the robot
-     * @param encoders List of encoders (passed in as DcMotor) on drivetrain to calculate distances and positions
+     * 
+     * @param motors   List of motors on drivetrain in order of Right Front, Right
+     *                 Back, Left Front and then Left Back
+     * @param imu      the inertial measurement unit or gyro sensor of the robot
+     * @param encoders List of encoders (passed in as DcMotor) on drivetrain to
+     *                 calculate distances and positions
      */
-    public MecanumDrive(List<DcMotor> motors, IIMU imu, Telemetry telemetry, List<DcMotor> encoders){
+    public void MecanumDrive(List<DcMotor> motors, IIMU imu, Telemetry telemetry, List<DcMotor> encoders) {
         this.motors = motors;
         this.imu = imu;
         this.imu.initialize();
@@ -55,10 +58,10 @@ public class Mecanum implements IDriveTrain {
      * @param lbPower left back power
      */
     private void setPowerAll(double rfPower, double rbPower, double lfPower, double lbPower) {
-        motors.get(0).setpower(rfPower);
-        motors.get(1).setpower(rbPower);
-        motors.get(2).setpower(lfPower);
-        motors.get(3).setpower(lbPower);
+        motors.get(0).setPower(rfPower);
+        motors.get(1).setPower(rbPower);
+        motors.get(2).setPower(lfPower);
+        motors.get(3).setPower(lbPower);
     }
 
     // translation of vertical, horizontal, pivot power into motor speeds
@@ -102,16 +105,16 @@ public class Mecanum implements IDriveTrain {
 
     @Override
     public void resetEncoders() {
-        for (DCMotor motor : encoders) {
-            motor.setMode(DCMotor.RunMode.STOP_AND_RESET_ENCODER);
-            motor.setMode(DCMotor.RunMode.RUN_WITHOUT_ENCODER);
+        for (DcMotor motor : encoders) {
+            motor.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+            motor.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
         }
         leftVerticalLastEncoder = 0;
         rightVerticalLastEncoder = 0;
         horizontalLastEncoder = 0;
     }
 
-    public void resetEncoders(DCMotor.RunMode endMode) {
+    public void resetEncoders(DcMotor.RunMode endMode) {
         for (DcMotor motor : encoders) {
             motor.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
             motor.setMode(endMode);
@@ -161,11 +164,25 @@ public class Mecanum implements IDriveTrain {
             }
 
             // x vector movement
-            double horizontal = Utility.RoundTwoDec(calculateX(moveAngle, power));
+            double horizontal = Utility.roundTwoDec(calculateX(moveAngle, power));
             // y vector movement
-            double verticle = Utility.RoundTwoDec(calculateY(moveAngle, power));
+            double vertical = Utility.roundTwoDec(calculateY(moveAngle, power));
             // correction
             double pivotCorrection = ((currentAngle - endOrientationAngle) * PIDGain[0]);
+
+            rawSlide(horizontal, vertical, pivotCorrection, power);
         }
+        if(targetReached&&distanceCorrectionTimer.milliseconds()>=correctionTime){
+            this.stop();
+            targetReached=false;
+            return false;
+        }else{
+            return false;
+        }
+    }
+
+    @Override 
+    public void stop(){
+        setPowerAll(0, 0, 0, 0);
     }
 }
