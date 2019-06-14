@@ -1,5 +1,5 @@
 package org.firstinspires.ftc.teamcode.enums;
 
-public enum Direction{
-    CLOCKWISE, COUNTERCLOCKWISE
+public enum Direction {
+    CLOCKWISE, COUNTERCLOCKWISE, FASTEST
 }

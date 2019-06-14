@@ -29,7 +29,20 @@ public interface IDriveTrain {
             double rampUpTargetPosition, double rampDownEnd, double maxPower, double lowPower, double moveAngle,
             double[] PIDGain, double endOrientationAngle, double allowableDistanceError, double correctiontime);
 
-    boolean pivot();
+    /**
+     * Pivots the robot to a desired angle. It uses a proportional control loop to
+     * maintain the robot's speed
+     * 
+     * @param desiredAngle   The angle to which to pivot to
+     * @param rampDownAngle  The angle at which to start slowing down
+     * @param maxPower       The max power to pivot at
+     * @param minPower       The min power to pivot at
+     * @param correctionTime The amount of time to spend correcting to stay within
+     *                       the desired range
+     * @return true if the motion is complete, false is the motion is ongoing
+     */
+    boolean pivot(double desiredAngle, double rampDownAngle, double maxPower, double minPower, double correctionTime,
+            double correctionAngleError, Direction direction);
 
     void softEncoderReset();
 

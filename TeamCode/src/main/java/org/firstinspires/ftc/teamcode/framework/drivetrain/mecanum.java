@@ -11,6 +11,7 @@ import org.firstinspires.ftc.teamcode.framework.Datalog;
 import org.firstinspires.ftc.teamcode.framework.Utility;
 
 import java.util.List;
+
 public class Mecanum implements IDriveTrain {
     private List<DcMotor> motors;
     private List<DcMotor> encoders;
@@ -172,17 +173,109 @@ public class Mecanum implements IDriveTrain {
 
             rawSlide(horizontal, vertical, pivotCorrection, power);
         }
-        if(targetReached&&distanceCorrectionTimer.milliseconds()>=correctionTime){
+        if (targetReached && distanceCorrectionTimer.milliseconds() >= correctionTime) {
             this.stop();
-            targetReached=false;
+            targetReached = false;
             return false;
-        }else{
+        } else {
             return false;
         }
     }
 
-    @Override 
-    public void stop(){
+    /**
+     * Pivots the robot to a desired angle, while using a proportional control loop
+     * to maintain the robot's drive speed
+     * 
+     * @param desiredAngle         The angle to which to pivot to
+     * @param rampDownAngle        The angle at which to start slowing down
+     * @param maxPower             The max power to pivot at, ranging from 0.0 to
+     *                             1.0
+     * @param minPower             The min power to pivot at, ranging from 0.0 to
+     *                             1.0
+     * @param correctionAngleError
+     * @param correctionTime       The amount of time to spend correcting to stay
+     *                             within the desired range
+     * @param direction
+     * @return true if the action has been completed, false if the robot is still
+     *         pivoting
+     */
+    @Override
+    public boolean pivot(double desiredAngle, double rampDownAngle, double maxPower, double minPower,
+            double correctionTime, double correctionAngleError, Direction direction) {
+        double currentAngle = imu.getZAngle(desiredAngle);
+        double angleDifference = desiredAngle - currentAngle;
+        double rampDownDifference = desiredAngle - rampDownAngle;
+        double power;
+
+        // calculate power
+        if (Math.abs(angleDifference) > Math.abs(rampDownDifference)) {
+            power = maxPower;
+        } else {
+            power = (maxPower - minPower) / (Math.abs(rampDownDifference)) * Math.abs(angleDifference) + minPower;
+        }
+        // turn clockwise or counterclockwise depending on which side of desired angle
+        // current angle is
+        if (direction == Direction.FASTEST || targetReached) {
+            if (angleDifference > 0) {
+                this.setPowerAll(-power, -power, power, power);
+            } else {
+                this.setPowerAll(power, power, -power, -power);
+            }
+        } else if (direction == Direction.CLOCKWISE) {
+            this.setPowerAll(-power, -power, power, power);
+        } else {
+            this.setPowerAll(power, power, -power, -power);
+        }
+
+        // determine if the pivoting angle is in the desired range
+        if (Math.abs(angleDifference) < correctionAngleError && !targetReached) {
+            pivotTime.reset();
+            targetReached = true;
+        }
+        if (targetReached && pivotTime.milliseconds() >= correctionTime) {
+            targetReached = false;
+            this.stop();
+            return false;
+        } else {
+            return true;
+        }
+    }
+
+    @Override
+    public void softEncoderReset() {
+        leftVerticalLastEncoder = encoders.get(0).getCurrentPosition();
+        rightVerticalLastEncoder = encoders.get(1).getCurrentPosition();
+        horizontalLastEncoder = encoders.get(2).getCurrentPosition();
+    }
+
+    private double[] getEncoderPositions() {
+        double[] encoders = { this.encoders.get(0).getCurrentPosition() - leftVerticalLastEncoder,
+                this.encoders.get(1).getCurrentPosition() - rightVerticalLastEncoder,
+                this.encoders.get(2).getCurrentPosition() - horizontalLastEncoder };
+        return encoders;
+    }
+
+    public double getEncoderDistance() {
+
+        // Get Current Positions
+        double[] encoders = this.getEncoderPositions();
+
+        double vlPos = encoders[0];
+        double vrPos = encoders[1];
+        double hPos = encoders[2];
+
+        // Average the Vertical Wheels
+        double y = ((Math.abs(vlPos) + Math.abs(vrPos)) / 2);
+        double x = hPos;
+
+        // Calculate distance
+        double distance = Math.sqrt(Math.pow(y, 2) + Math.pow(x, 2));
+
+        return distance;
+    }
+
+    @Override
+    public void stop() {
         setPowerAll(0, 0, 0, 0);
     }
 }
