@@ -178,7 +178,7 @@ public class Mecanum implements IDriveTrain {
             targetReached = false;
             return false;
         } else {
-            return false;
+            return true;
         }
     }
 
